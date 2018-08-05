@@ -1,7 +1,7 @@
 import click
 
 
-ENVVAR_PREFIX='{{ cookiecutter.project_slug.upper() }}'
+ENVVAR_PREFIX = '{{ cookiecutter.project_slug.upper() }}'
 
 
 @click.command()
