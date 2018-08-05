@@ -8,7 +8,7 @@ Running
 
 ::
 
-    $ pip install cookiecutter
+    $ pip install -U cookiecutter
     $ cookiecutter https://github.com/awiddersheim/cookiecutter-pypackage
 
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
