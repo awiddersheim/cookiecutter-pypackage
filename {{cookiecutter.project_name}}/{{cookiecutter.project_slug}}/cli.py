@@ -1,6 +1,9 @@
 import click
 
 
+ENVVAR_PREFIX='{{ cookiecutter.project_slug.upper() }}'
+
+
 @click.command()
 @click.version_option()
 def cli():
@@ -11,6 +14,6 @@ def cli():
 
 def main():  # pragma: no cover
     cli(
-        auto_envvar_prefix='{{ cookiecutter.project_slug.upper() }}',
+        auto_envvar_prefix=ENVVAR_PREFIX,
         prog_name='{{ cookiecutter.project_slug }}',
     )
