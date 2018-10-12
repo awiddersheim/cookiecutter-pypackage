@@ -28,8 +28,17 @@ Development
 
 ::
 
-    $ pip install -e .
+    $ pip install --editable .
     $ {{ cookiecutter.project_name }} --help
+
+
+Docker
+------
+
+::
+
+    $ docker build --tag {{ cookiecutter.project_name }} --target prod .
+    $ docker run --rm {{ cookiecutter.project_name }} --help
 
 
 Testing
@@ -38,7 +47,7 @@ Testing
 ::
 
     # Install development packages (preferably in a virtualenv)
-    $ pip install -e .[dev]
+    $ pip install --editable .[dev]
 
     # Run tests
     $ pytest
