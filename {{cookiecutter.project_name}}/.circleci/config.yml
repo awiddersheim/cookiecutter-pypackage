@@ -47,7 +47,7 @@ jobs:
     environment:
       TOXENV: py37
 
-  flake8: &tox-template
+  flake8:
     docker:
       - image: circleci/python:3
     environment:
@@ -57,14 +57,7 @@ jobs:
       - run: pip install --user tox
       - run: /home/circleci/.local/bin/tox
 
-  check_readme:
-    <<: *tox-template
-    docker:
-      - image: circleci/python:3
-    environment:
-      TOXENV: check_readme
-
-  build:
+  build_dist:
     docker:
       - image: circleci/python:3
     environment:
@@ -72,7 +65,9 @@ jobs:
     steps:
       - checkout
       - run: pip install --user tox
-      - run: /home/circleci/.local/bin/tox
+      - run: |
+          export SETUPTOOLS_SCM_PREVIOUS_TAG="$(git tag | sort -V | grep "^v.*" | grep -v ".dev" | tail -n 1)"
+          /home/circleci/.local/bin/tox
       - store_artifacts:
           path: dist
           destination: packages
@@ -81,70 +76,79 @@ jobs:
           paths:
             - dist
 
-  deploy_pypi:
+  build_docker:
     docker:
       - image: circleci/python:3
-    environment:
-      TOXENV: deploy_pypi
     steps:
-      - attach_workspace:
-          at: /tmp/workspace
       - checkout
-      - run: pip install --user tox
-      - run: /home/circleci/.local/bin/tox -- '/tmp/workspace/dist/*'
+      - setup_remote_docker
+      - run: docker build --target prod .
 
-  deploy_github:
+  deploy:
     docker:
       - image: circleci/python:3
     environment:
-      TOXENV: deploy_github
+      TOXENV: deploy
     steps:
       - attach_workspace:
           at: /tmp/workspace
       - checkout
+      - setup_remote_docker
       - run: pip install --user tox
       - run: |
-          export GITHUB_RELEASE_CICD_REPO=$(python setup.py --name)
+          export SETUPTOOLS_SCM_PREVIOUS_TAG="$(git tag | sort -V | grep "^v.*" | grep -v ".dev" | tail -n 1)"
+          export DOCKER_TAG="$(python setup.py --version)"
+          export GITHUB_RELEASE_CICD_REPO="$(python setup.py --name)"
           export GITHUB_RELEASE_CICD_CREATE_TAG="v$(python setup.py --version)"
-          export GITHUB_RELEASE_CICD_CREATE_MESSAGE=$(git show --no-patch --pretty=format:"%s%n%b" ${CIRCLE_SHA1})
-          export GITHUB_RELEASE_CICD_CREATE_TARGET=${CIRCLE_SHA1}
-          /home/circleci/.local/bin/tox -- --assets '/tmp/workspace/dist/*'
+          export GITHUB_RELEASE_CICD_CREATE_MESSAGE="$([ -z "${CIRCLE_TAG}" ] && git show --no-patch --pretty=format:%s%n%n%b ${CIRCLE_SHA1} || git tag --list --format="%(contents)" ${CIRCLE_TAG})"
+          export GITHUB_RELEASE_CICD_CREATE_PRERELEASE="$([ -z "${CIRCLE_TAG}" ] && echo true || echo false)"
+          export GITHUB_RELEASE_CICD_CREATE_TARGET="${CIRCLE_SHA1}"
+          docker build --tag {{ cookiecutter.github_user }}/{{ cookiecutter.project_name }}:${DOCKER_TAG} --target prod .
+          [ -z "${CIRCLE_TAG}" ] || docker tag {{ cookiecutter.github_user }}/{{ cookiecutter.project_name }}:${DOCKER_TAG} {{ cookiecutter.github_user }}/{{ cookiecutter.project_name }}:latest
+          docker login --username ${DOCKER_USERNAME} --password ${DOCKER_PASSWORD}
+          /home/circleci/.local/bin/tox -- '/tmp/workspace/dist/*'
+          docker push {{ cookiecutter.github_user }}/{{ cookiecutter.project_name }}
 
 workflows:
   version: 2
-  test-and-build:
+  test-build-deploy:
     jobs:
-      - check_readme:
+      - build_dist:
           filters:
             tags:
-              only: /^v.*/
+              only: /^v[0-9.]*/
+      - build_docker:
+          filters:
+            tags:
+              only: /^v[0-9.]*/
       - flake8:
           filters:
             tags:
-              only: /^v.*/
+              only: /^v[0-9.]*/
       - python27:
           filters:
             tags:
-              only: /^v.*/
+              only: /^v[0-9.]*/
       - python34:
           filters:
             tags:
-              only: /^v.*/
+              only: /^v[0-9.]*/
       - python35:
           filters:
             tags:
-              only: /^v.*/
+              only: /^v[0-9.]*/
       - python36:
           filters:
             tags:
-              only: /^v.*/
+              only: /^v[0-9.]*/
       - python37:
           filters:
             tags:
-              only: /^v.*/
-      - build:
+              only: /^v[0-9.]*/
+      - deploy:
           requires:
-            - check_readme
+            - build_dist
+            - build_docker
             - flake8
             - python27
             - python34
@@ -152,21 +156,7 @@ workflows:
             - python36
             - python37
           filters:
-            tags:
-              only: /^v.*/
-      - deploy_pypi:
-          requires:
-            - build
-          filters:
             branches:
               only: master
             tags:
-              only: /^v.*/
-      - deploy_github:
-          requires:
-            - build
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v.*/
+              only: /^v[0-9.]*/

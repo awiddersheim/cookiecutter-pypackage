@@ -1,4 +1,5 @@
 import io
+import os
 
 from setuptools import find_packages
 from setuptools import setup
@@ -7,7 +8,7 @@ from setuptools import setup
 def local_scheme(version):
     from pkg_resources import iter_entry_points
 
-    # NOTE(awiddersheim): Modify default behaviour slighlty by not
+    # NOTE(awiddersheim): Modify default behaviour slightly by not
     # adding any local scheme to a clean `master` branch.
     if version.branch == 'master' and not version.dirty:
         return ''
@@ -19,24 +20,35 @@ def local_scheme(version):
         return item.load()(version)
 
 
-with io.open('README.rst', encoding='utf-8') as f:
+with io.open('README.md', encoding='utf-8') as f:
     long_description = f.read()
 
 
 setup(
     name='{{ cookiecutter.project_name }}',
     use_scm_version={
+        # NOTE(awiddersheim): Pulling from an environment variable is a
+        # hack to get around the fact that `--exclude` for
+        # `git-describe` is not ubiquitous yet. Once that happens it can
+        # be removed if no longer needed.
+        'git_describe_command': 'git describe --dirty --tags --long --match {}'.format(
+            os.getenv(
+                'SETUPTOOLS_SCM_PREVIOUS_TAG',
+                '"v*.*" --exclude "*.dev*"',
+            ),
+        ),
         'local_scheme': local_scheme,
         'write_to': '{{ cookiecutter.project_slug }}/version.py',
     },
     setup_requires=[
-        'setuptools_scm',
+        'setuptools_scm>=3.2.0',
     ],
     author='{{ cookiecutter.author }}',
     author_email='{{ cookiecutter.email }}',
     url='{{ cookiecutter.url }}',
     description='{{ cookiecutter.description }}',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     packages=find_packages(exclude=['tests', 'tests.*']),
     install_requires=[
         'click',

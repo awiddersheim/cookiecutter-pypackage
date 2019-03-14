@@ -5,18 +5,25 @@ MAINTAINER {{ cookiecutter.author }} <{{ cookiecutter.email }}>
 WORKDIR /{{ cookiecutter.project_slug }}
 COPY . .
 
-RUN apk add --no-cache --update-cache --virtual .build-deps \
+RUN apk add --no-cache --virtual .build-deps \
+        coreutils \
         git \
-    && adduser --system {{ cookiecutter.project_slug }} \
-    && pip install --no-cache-dir .
+    && pip install --no-cache-dir --upgrade \
+        pip \
+        setuptools \
+    && export SETUPTOOLS_SCM_PREVIOUS_TAG="$(git tag | sort -V | grep "^v.*" | grep -v ".dev" | tail -n 1)" \
+    && pip install --no-cache-dir . \
+    && adduser -H -S tempocli
 
 FROM base as prod
 
-RUN apk del .build-deps
+RUN rm -rf /{{ cookiecutter.project_slug }} \
+    && apk del .build-deps
 
 USER {{ cookiecutter.project_slug }}
 
 ENTRYPOINT ["{{ cookiecutter.project_name }}"]
+CMD ["--help"]
 
 FROM base as test
 
