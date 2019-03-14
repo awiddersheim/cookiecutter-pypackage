@@ -1,6 +1,6 @@
 # cookiecutter-pypackage
 
-A [Cookiecutter][coookicutter] template for creating a basic Python
+A [Cookiecutter][cookiecutter] template for creating a basic Python
 package.
 
 ## Running
