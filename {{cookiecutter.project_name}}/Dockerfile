@@ -13,7 +13,7 @@ RUN apk add --no-cache --virtual .build-deps \
         setuptools \
     && export SETUPTOOLS_SCM_PREVIOUS_TAG="$(git tag | sort -V | grep "^v.*" | grep -v ".dev" | tail -n 1)" \
     && pip install --no-cache-dir . \
-    && adduser -H -S tempocli
+    && adduser -H -S {{ cookiecutter.project_slug }}
 
 FROM base as prod
 
