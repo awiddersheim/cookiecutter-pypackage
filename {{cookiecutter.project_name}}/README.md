@@ -59,5 +59,8 @@ $ pytest
 $ tox
 
 # Linting
+$ flake8
+
+# Can also lint in tox as well
 $ tox -e flake8
 ```
