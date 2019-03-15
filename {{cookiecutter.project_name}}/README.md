@@ -5,7 +5,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/{{ cookiecutter.project_name }}.svg)](https://pypi.org/project/{{ cookiecutter.project_name }})
 [![Python Versions](https://img.shields.io/pypi/pyversions/{{ cookiecutter.project_name }}.svg)](https://pypi.org/project/{{ cookiecutter.project_name }})
 [![Build Status](https://img.shields.io/circleci/project/github/{{ cookiecutter.github_user }}/{{ cookiecutter.project_name }}/master.svg)](https://circleci.com/gh/{{ cookiecutter.github_user }}/{{ cookiecutter.project_name }})
-[![License](https://img.shields.io/pypi/l/{{ cookiecutter.project_name }}.svg)](https://github.com/awiddersheim/{{ cookiecutter.project_name }}/blob/master/LICENSE)
+[![License](https://img.shields.io/pypi/l/{{ cookiecutter.project_name }}.svg)](https://github.com/{{ cookiecutter.github_user }}/{{ cookiecutter.project_name }}/blob/master/LICENSE)
 [![Docker Pulls](https://img.shields.io/docker/pulls/{{ cookiecutter.github_user }}/{{ cookiecutter.project_name }}.svg)](https://hub.docker.com/r/{{ cookiecutter.github_user }}/{{ cookiecutter.project_name }})
 
 ## Installation
